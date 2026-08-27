@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ひらがなれんしゅう・せいや・書き順修正版</title>
+<style>
+*{box-sizing:border-box}
+@page{size:A4 landscape;margin:0}
+:root{--cell:46mm}
+body{margin:0;background:#eee;color:#222;font-family:"Yu Gothic","Hiragino Kaku Gothic ProN",sans-serif}
+
+/* JSなしでも切替できるラジオ */
+.mode-radio{position:absolute;left:-9999px}
+.controls{width:min(1100px,calc(100% - 24px));margin:16px auto;padding:16px 18px;background:#fff;border-radius:12px;box-shadow:0 2px 12px #0002}
+.controls h2{margin:0 0 8px;font-size:18px}
+.controls p{font-size:13px;line-height:1.6;margin:6px 0 12px}
+.mode-box{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 14px}
+.mode-label{display:inline-block;padding:9px 14px;border:1.5px solid #777;border-radius:9px;cursor:pointer;font-weight:700;font-size:14px;background:#fff}
+#mode-all:checked ~ .controls label[for="mode-all"],
+#mode-mixed:checked ~ .controls label[for="mode-mixed"]{border-width:3px}
+.edit-grid{display:grid;grid-template-columns:55px 90px 1fr;gap:8px 10px;align-items:center}
+.edit-grid .head{font-weight:700;font-size:13px}
+input,button{font:inherit}
+.char-input{width:68px;font-size:27px;text-align:center;padding:5px}
+.word-input{width:100%;max-width:250px;font-size:18px;padding:7px 9px}
+button{margin-top:12px;padding:9px 16px;border:1px solid #777;border-radius:8px;background:#fff}
+.note{font-size:12px;line-height:1.55;margin-top:10px}
+
+.page{width:297mm;height:210mm;margin:0 auto 20px;padding:7mm;background:#fff;overflow:hidden}
+.header{display:flex;align-items:flex-end;justify-content:space-between;height:20mm;margin-bottom:4mm}
+h1{margin:0;font-size:20pt;letter-spacing:.08em}
+.info{display:flex;gap:7mm;font-size:12pt}
+.write-line{display:inline-block;width:44mm;height:8mm;border-bottom:1.5px solid #333;vertical-align:bottom}
+.date-line{width:32mm}
+.practice{display:flex;flex-direction:column;gap:4mm}
+.row{display:grid;grid-template-columns:43mm repeat(5,var(--cell));gap:2mm;align-items:center;height:var(--cell)}
+.word-area{height:var(--cell);border:1.4px solid #777;border-radius:3mm;display:grid;grid-template-rows:1fr 12mm;overflow:hidden}
+.picture{display:flex;align-items:center;justify-content:center;padding:2mm;text-align:center;font-size:9pt;color:#777;line-height:1.4;border-bottom:1px dashed #aaa}
+.word{display:flex;align-items:center;justify-content:center;font-size:17pt;font-weight:700}
+.cell{position:relative;width:var(--cell);height:var(--cell);border:1.5px solid #555;background:#fff;overflow:hidden}
+.cell:before,.cell:after{content:"";position:absolute;z-index:1;pointer-events:none}
+.cell:before{left:50%;top:0;bottom:0;border-left:1px dashed #aaa;transform:translateX(-50%)}
+.cell:after{top:50%;left:0;right:0;border-top:1px dashed #aaa;transform:translateY(-50%)}
+.glyph{position:absolute;inset:1mm;z-index:2;display:flex;align-items:center;justify-content:center;
+font-family:"Yu Kyokasho","UD Digi Kyokasho NP-R","Hiragino Kaku Gothic ProN",sans-serif;
+font-size:34mm;line-height:1;transform:translateY(-1mm)}
+.model .glyph{font-weight:700;color:#111}
+.practice-cell .glyph{font-weight:500;color:#D3D3D3}
+
+/* 混合モードだけ後ろ2マスを空欄にする */
+#mode-mixed:checked ~ .page .self-cell .glyph{display:none}
+
+.order-title{position:absolute;z-index:10;top:1.2mm;right:1.5mm;font-size:7pt;font-weight:700;background:#fff;padding:0 .8mm}
+.marker{position:absolute;z-index:12;transform:translate(-50%,-50%);display:flex;align-items:center;gap:.8mm;white-space:nowrap}
+.num{font-size:15pt;font-weight:900;line-height:1;background:#fff;border-radius:50%;padding:.3mm}
+.arrow{font-size:14pt;font-weight:900;line-height:1;background:#fff;padding:0 .4mm}
+
+/* 初期表示のせ・い・や：JSが動かなくても必ず見える */
+.se1{left:15%;top:41%}.se2{left:64%;top:18%}.se3{left:36%;top:18%}
+.i1{left:30%;top:19%}.i2{left:67%;top:23%}
+.ya1{left:15%;top:45%}.ya2{left:58%;top:15%}.ya3{left:34%;top:18%}
+
+.footer{margin-top:3mm;text-align:right;font-size:8pt;color:#777}
+
+@media print{
+html,body{width:297mm;height:210mm;margin:0;background:#fff}
+.controls,.mode-radio{display:none!important}
+.page{margin:0;width:297mm;height:210mm;page-break-after:avoid}
+*{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<input class="mode-radio" type="radio" name="mode" id="mode-all" checked>
+<input class="mode-radio" type="radio" name="mode" id="mode-mixed">
+
+<section class="controls">
+<h2>ひらがなドリルの設定</h2>
+<p><b>初期設定は「ぜんぶなぞる」</b>です。下のボタンで切り替えられます。</p>
+<div class="mode-box">
+<label class="mode-label" for="mode-all">ぜんぶなぞる</label>
+<label class="mode-label" for="mode-mixed">なぞり2回＋じぶんで2回</label>
+</div>
+
+<div class="edit-grid">
+<div class="head">行</div><div class="head">文字</div><div class="head">ことば</div>
+<div>1</div><input id="char1" class="char-input" maxlength="1" value="せ"><input id="word1" class="word-input" value="せみ">
+<div>2</div><input id="char2" class="char-input" maxlength="1" value="い"><input id="word2" class="word-input" value="いぬ">
+<div>3</div><input id="char3" class="char-input" maxlength="1" value="や"><input id="word3" class="word-input" value="やま">
+</div>
+<button onclick="window.print()">この内容で印刷</button>
+<div class="note">
+※ iPhoneの簡易プレビューではJavaScriptが動かない場合があります。<br>
+その場合でも、初期の「せ・い・や」の①②③と「ぜんぶなぞる」は表示・印刷できます。
+</div>
+</section>
+
+<div class="page">
+<div class="header">
+<h1>ひらがな れんしゅう</h1>
+<div class="info"><div>なまえ <span class="write-line"></span></div><div>ひづけ <span class="write-line date-line"></span></div></div>
+</div>
+
+<div class="practice">
+
+<!-- せ -->
+<div class="row">
+<div class="word-area"><div class="picture" id="pic1">「せみ」の<br>えをかこう</div><div class="word" id="displayWord1">せみ</div></div>
+<div class="cell model">
+  <div class="glyph target-char" data-row="1">せ</div>
+  <div class="order-title">かきじゅん</div>
+  <div id="markers1">
+    <div class="marker se1"><span class="num">①</span><span class="arrow">→</span></div>
+    <div class="marker se2"><span class="num">②</span><span class="arrow">↓</span></div>
+    <div class="marker se3"><span class="num">③</span><span class="arrow">↓</span></div>
+  </div>
+</div>
+<div class="cell practice-cell"><div class="glyph target-char" data-row="1">せ</div></div>
+<div class="cell practice-cell"><div class="glyph target-char" data-row="1">せ</div></div>
+<div class="cell practice-cell self-cell"><div class="glyph target-char" data-row="1">せ</div></div>
+<div class="cell practice-cell self-cell"><div class="glyph target-char" data-row="1">せ</div></div>
+</div>
+
+<!-- い -->
+<div class="row">
+<div class="word-area"><div class="picture" id="pic2">「いぬ」の<br>えをかこう</div><div class="word" id="displayWord2">いぬ</div></div>
+<div class="cell model">
+  <div class="glyph target-char" data-row="2">い</div>
+  <div class="order-title">かきじゅん</div>
+  <div id="markers2">
+    <div class="marker i1"><span class="num">①</span><span class="arrow">↓</span></div>
+    <div class="marker i2"><span class="num">②</span><span class="arrow">↓</span></div>
+  </div>
+</div>
+<div class="cell practice-cell"><div class="glyph target-char" data-row="2">い</div></div>
+<div class="cell practice-cell"><div class="glyph target-char" data-row="2">い</div></div>
+<div class="cell practice-cell self-cell"><div class="glyph target-char" data-row="2">い</div></div>
+<div class="cell practice-cell self-cell"><div class="glyph target-char" data-row="2">い</div></div>
+</div>
+
+<!-- や -->
+<div class="row">
+<div class="word-area"><div class="picture" id="pic3">「やま」の<br>えをかこう</div><div class="word" id="displayWord3">やま</div></div>
+<div class="cell model">
+  <div class="glyph target-char" data-row="3">や</div>
+  <div class="order-title">かきじゅん</div>
+  <div id="markers3">
+    <div class="marker ya1"><span class="num">①</span><span class="arrow">→</span></div>
+    <div class="marker ya2"><span class="num">②</span><span class="arrow">↘</span></div>
+    <div class="marker ya3"><span class="num">③</span><span class="arrow">↘</span></div>
+  </div>
+</div>
+<div class="cell practice-cell"><div class="glyph target-char" data-row="3">や</div></div>
+<div class="cell practice-cell"><div class="glyph target-char" data-row="3">や</div></div>
+<div class="cell practice-cell self-cell"><div class="glyph target-char" data-row="3">や</div></div>
+<div class="cell practice-cell self-cell"><div class="glyph target-char" data-row="3">や</div></div>
+</div>
+
+</div>
+<div class="footer">A4・横向き／倍率100%（実際のサイズ）推奨</div>
+</div>
+
+<script>
+/* ブラウザで開いた場合は文字・ことばの変更にも対応。
+   初期のせ・い・やはHTML内に書き順を直書きしているためJSなしでも表示されます。 */
+const guides={
+"せ":[[[15,41,"→"],[64,18,"↓"],[36,18,"↓"]]],
+"い":[[[30,19,"↓"],[67,23,"↓"]]],
+"や":[[[15,45,"→"],[58,15,"↘"],[34,18,"↘"]]]
+};
+
+function esc(s){return s.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")}
+function renderMarkers(r,ch){
+ const box=document.getElementById("markers"+r);
+ if(!box) return;
+ const d=(guides[ch]||[])[0];
+ if(!d){box.innerHTML='<div style="position:absolute;z-index:12;left:3mm;top:3mm;background:white;font-size:8pt">書き順ガイド未登録</div>';return}
+ box.innerHTML="";
+ d.forEach((m,i)=>{
+   const x=document.createElement("div");x.className="marker";x.style.left=m[0]+"%";x.style.top=m[1]+"%";
+   x.innerHTML='<span class="num">'+["①","②","③","④"][i]+'</span><span class="arrow">'+m[2]+'</span>';
+   box.appendChild(x);
+ });
+}
+function update(r){
+ const ch=(document.getElementById("char"+r).value||"　").slice(0,1);
+ const w=document.getElementById("word"+r).value||"";
+ document.querySelectorAll('.target-char[data-row="'+r+'"]').forEach(e=>e.textContent=ch);
+ document.getElementById("displayWord"+r).textContent=w;
+ document.getElementById("pic"+r).innerHTML="「"+esc(w)+"」の<br>えをかこう";
+ renderMarkers(r,ch);
+}
+for(let r=1;r<=3;r++){
+ ["char","word"].forEach(p=>{
+  const e=document.getElementById(p+r);
+  e.addEventListener("input",()=>update(r));
+  e.addEventListener("change",()=>update(r));
+ });
+}
+</script>
+</body>
+</html>
