@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ひらがなれんしゅう・全部つながらない版</title>
+<title>ひらがなれんしゅう・全部つながらない版・iPhone入力修正</title>
 
 <style id="page-style">@page{size:auto;margin:0}</style>
 
@@ -410,7 +410,7 @@ body.paper-b5{
 <h2>ひらがな練習・全部つながらない版</h2>
 <p>
 ひらがなの練習用に、<b>すべての文字を1画ずつ離れた形</b>で表示します。<br>
-左のチェックが付いている文字だけ印刷します。
+左のチェックが付いている文字だけ印刷します。<br>iPhoneの日本語キーボードでも追加した文字欄に入力できます。
 </p>
 
 <div class="section-title">用紙サイズ</div>
@@ -589,7 +589,7 @@ function makeRow(index,data){
   div.innerHTML=`
     <div class="no">${index+1}</div>
     <input class="print-check" type="checkbox" ${data.checked ? "checked" : ""} aria-label="印刷する">
-    <input class="char-input" maxlength="1" value="${esc(data.char)}" aria-label="文字">
+    <input class="char-input" value="${esc(data.char)}" aria-label="文字" inputmode="text" autocomplete="off">
     <input class="word-input" value="${esc(data.word)}" aria-label="ことば">
     <button class="remove-btn" type="button">削除</button>
   `;
@@ -621,16 +621,44 @@ function bindRowEvents(){
       renderPages();
     });
 
-    charInput.addEventListener("input",()=>{
-      rowsData[index].char=(charInput.value||"　").slice(0,1);
-      charInput.value=rowsData[index].char;
+    let isComposing=false;
+
+    function commitChar(){
+      const raw=charInput.value.trim();
+      const first=Array.from(raw)[0] || "　";
+      rowsData[index].char=first;
+      charInput.value=first;
       renderPages();
+    }
+
+    /* iPhoneの日本語キーボードで「さ」「き」などを変換中に
+       1文字へ切り詰めないようにする */
+    charInput.addEventListener("compositionstart",()=>{
+      isComposing=true;
+    });
+
+    charInput.addEventListener("compositionend",()=>{
+      isComposing=false;
+      commitChar();
+    });
+
+    charInput.addEventListener("input",()=>{
+      if(isComposing) return;
+
+      /* フリック入力など、変換を伴わず1文字入る場合 */
+      const raw=charInput.value;
+      if(Array.from(raw).length===1){
+        rowsData[index].char=raw;
+        renderPages();
+      }
     });
 
     charInput.addEventListener("change",()=>{
-      rowsData[index].char=(charInput.value||"　").slice(0,1);
-      charInput.value=rowsData[index].char;
-      renderPages();
+      if(!isComposing) commitChar();
+    });
+
+    charInput.addEventListener("blur",()=>{
+      if(!isComposing) commitChar();
     });
 
     wordInput.addEventListener("input",()=>{
