@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ひらがなれんしゅう・A4/B5選択</title>
+<style id="page-style">
+@page{size:auto;margin:0}
+</style>
+<style>
+*{box-sizing:border-box}
+:root{
+  --cell:68mm;
+  --gap:5mm;
+  --page-w:257mm;
+  --page-h:182mm;
+}
+body{
+  margin:0;background:#eee;color:#222;
+  font-family:"Yu Gothic","Hiragino Kaku Gothic ProN",sans-serif
+}
+.state-radio,.mode-radio{position:absolute;left:-9999px}
+
+.controls{
+  width:min(960px,calc(100% - 24px));
+  margin:16px auto;padding:16px 18px;background:#fff;
+  border-radius:12px;box-shadow:0 2px 12px #0002
+}
+.controls h2{margin:0 0 8px;font-size:18px}
+.controls p{font-size:13px;line-height:1.6;margin:6px 0 12px}
+.edit-grid{
+  display:grid;grid-template-columns:45px 90px 1fr;
+  gap:8px 10px;align-items:center;margin-bottom:14px
+}
+.edit-grid .head{font-weight:700;font-size:13px}
+input,button,select{font:inherit}
+.char-input{width:70px;font-size:28px;text-align:center;padding:5px}
+.word-input{width:100%;max-width:240px;font-size:18px;padding:7px 9px}
+.paper-select{padding:8px 10px;font-size:15px}
+.section-title{font-size:13px;font-weight:700;margin:12px 0 6px}
+.choice-box,.mode-box{display:flex;gap:9px;flex-wrap:wrap}
+.choice-label,.mode-label{
+  display:inline-block;padding:9px 13px;border:1.5px solid #777;
+  border-radius:9px;cursor:pointer;font-weight:700;font-size:14px;background:#fff
+}
+#print-1:checked ~ .controls label[for="print-1"],
+#print-2:checked ~ .controls label[for="print-2"],
+#print-3:checked ~ .controls label[for="print-3"],
+#print-all:checked ~ .controls label[for="print-all"],
+#mode-all:checked ~ .controls label[for="mode-all"],
+#mode-mixed:checked ~ .controls label[for="mode-mixed"]{border-width:3px}
+
+button{
+  margin-top:14px;padding:10px 18px;border:1px solid #777;
+  border-radius:8px;background:#fff;cursor:pointer
+}
+.note{font-size:12px;line-height:1.6;margin-top:10px}
+
+.page{
+  width:var(--page-w);height:var(--page-h);
+  margin:0 auto 20px;padding:6mm 8mm;background:#fff;overflow:hidden
+}
+.header{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  height:17mm;margin-bottom:4mm
+}
+h1{margin:0;font-size:19pt;letter-spacing:.08em}
+.info{display:flex;gap:6mm;font-size:11pt}
+.write-line{
+  display:inline-block;width:35mm;height:7mm;
+  border-bottom:1.4px solid #333;vertical-align:bottom
+}
+.date-line{width:27mm}
+
+.practice{
+  display:grid;grid-template-columns:repeat(3,var(--cell));
+  grid-template-rows:repeat(2,var(--cell));
+  gap:var(--gap);justify-content:center
+}
+.cell{
+  position:relative;width:var(--cell);height:var(--cell);
+  border:1.5px solid #555;background:#fff;overflow:hidden
+}
+.cell:before,.cell:after{content:"";position:absolute;z-index:1;pointer-events:none}
+.cell:before{
+  left:50%;top:0;bottom:0;border-left:1px dashed #aaa;
+  transform:translateX(-50%)
+}
+.cell:after{
+  top:50%;left:0;right:0;border-top:1px dashed #aaa;
+  transform:translateY(-50%)
+}
+.glyph{
+  position:absolute;inset:1mm;z-index:2;display:flex;
+  align-items:center;justify-content:center;
+  font-family:"Yu Kyokasho","UD Digi Kyokasho NP-R","Hiragino Kaku Gothic ProN",sans-serif;
+  font-size:51mm;line-height:1;transform:translateY(-1mm)
+}
+.model .glyph{font-weight:700;color:#111}
+.practice-cell .glyph{font-weight:500;color:#D3D3D3}
+#mode-mixed:checked ~ .pages .self-cell .glyph{display:none}
+
+.word-area{
+  width:var(--cell);height:var(--cell);border:1.5px solid #777;
+  border-radius:3mm;display:grid;grid-template-rows:1fr 16mm;overflow:hidden
+}
+.picture{
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  font-size:11pt;color:#777;line-height:1.5;
+  border-bottom:1px dashed #aaa;padding:2mm
+}
+.word{
+  display:flex;align-items:center;justify-content:center;
+  font-size:23pt;font-weight:700
+}
+.order-title{
+  position:absolute;z-index:10;top:1.5mm;right:1.5mm;
+  font-size:7pt;font-weight:700;background:#fff;padding:0 1mm
+}
+.marker{
+  position:absolute;z-index:12;transform:translate(-50%,-50%);
+  display:flex;align-items:center;gap:.7mm;white-space:nowrap
+}
+.num{
+  font-size:17pt;font-weight:900;line-height:1;
+  background:#fff;border-radius:50%;padding:.3mm
+}
+.arrow{
+  font-size:16pt;font-weight:900;line-height:1;
+  background:#fff;padding:0 .4mm
+}
+.unsupported{
+  position:absolute;z-index:12;left:3mm;right:3mm;bottom:2mm;
+  text-align:center;background:#fff;font-size:8pt
+}
+.footer{margin-top:2mm;text-align:right;font-size:8pt;color:#777}
+
+/* A4を選んだ場合は少し大きく */
+body.paper-a4{
+  --page-w:297mm;
+  --page-h:210mm;
+  --cell:77mm;
+  --gap:6mm;
+}
+body.paper-a4 .glyph{font-size:58mm}
+body.paper-a4 .header{height:19mm}
+body.paper-a4 .page{padding:7mm 9mm}
+
+/* 1ページだけ選択 */
+#print-1:checked ~ .pages .page:not([data-row="1"]),
+#print-2:checked ~ .pages .page:not([data-row="2"]),
+#print-3:checked ~ .pages .page:not([data-row="3"]){
+  display:none
+}
+
+@media print{
+  html,body{margin:0;background:#fff}
+  .controls,.state-radio,.mode-radio{display:none!important}
+  .page{
+    margin:0;
+    width:var(--page-w);
+    height:var(--page-h);
+    break-after:page;
+    page-break-after:always
+  }
+  .page:last-child{
+    break-after:auto;
+    page-break-after:auto
+  }
+
+  #print-1:checked ~ .pages .page:not([data-row="1"]),
+  #print-2:checked ~ .pages .page:not([data-row="2"]),
+  #print-3:checked ~ .pages .page:not([data-row="3"]){
+    display:none!important
+  }
+
+  #print-1:checked ~ .pages .page[data-row="1"],
+  #print-2:checked ~ .pages .page[data-row="2"],
+  #print-3:checked ~ .pages .page[data-row="3"]{
+    break-after:auto;
+    page-break-after:auto
+  }
+
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body class="paper-auto">
+
+<input class="state-radio" type="radio" name="print-target" id="print-1" checked>
+<input class="state-radio" type="radio" name="print-target" id="print-2">
+<input class="state-radio" type="radio" name="print-target" id="print-3">
+<input class="state-radio" type="radio" name="print-target" id="print-all">
+
+<input class="mode-radio" type="radio" name="mode" id="mode-all" checked>
+<input class="mode-radio" type="radio" name="mode" id="mode-mixed">
+
+<section class="controls">
+<h2>ひらがな練習・印刷設定</h2>
+<p>用紙サイズを固定せずに印刷したい場合は「自動」を選んでください。</p>
+
+<div class="section-title">用紙サイズ</div>
+<select id="paperSize" class="paper-select">
+  <option value="auto" selected>自動（プリンター側で選ぶ）</option>
+  <option value="a4">A4 横</option>
+  <option value="b5">B5 横</option>
+</select>
+
+<div class="edit-grid" style="margin-top:14px">
+<div class="head">頁</div><div class="head">文字</div><div class="head">ことば</div>
+<div>1</div><input id="char1" class="char-input" maxlength="1" value="せ"><input id="word1" class="word-input" value="せみ">
+<div>2</div><input id="char2" class="char-input" maxlength="1" value="い"><input id="word2" class="word-input" value="いぬ">
+<div>3</div><input id="char3" class="char-input" maxlength="1" value="や"><input id="word3" class="word-input" value="やま">
+</div>
+
+<div class="section-title">印刷するページ</div>
+<div class="choice-box">
+<label class="choice-label" for="print-1">1文字目だけ</label>
+<label class="choice-label" for="print-2">2文字目だけ</label>
+<label class="choice-label" for="print-3">3文字目だけ</label>
+<label class="choice-label" for="print-all">3文字まとめて</label>
+</div>
+
+<div class="section-title">練習方法</div>
+<div class="mode-box">
+<label class="mode-label" for="mode-all">4マス ぜんぶなぞる</label>
+<label class="mode-label" for="mode-mixed">2マスなぞる＋2マスじぶんで</label>
+</div>
+
+<button onclick="window.print()">選んだ内容を印刷</button>
+
+<div class="note">
+<b>おすすめ：</b>まず「自動」で印刷画面を開き、そこでA4/B5が選べるか確認してください。<br>
+もしプリンター側でA4が出ない場合は、プリンター本体の用紙設定もA4に変更してください。
+</div>
+</section>
+
+<div class="pages">
+
+<!-- PAGE 1 -->
+<div class="page" data-row="1">
+<div class="header">
+<h1><span class="title-char">せ</span> の れんしゅう</h1>
+<div class="info">
+<div>なまえ <span class="write-line"></span></div>
+<div>ひづけ <span class="write-line date-line"></span></div>
+</div>
+</div>
+<div class="practice">
+<div class="cell model">
+<div class="glyph target-char">せ</div>
+<div class="order-title">かきじゅん</div>
+<div class="markers">
+<div class="marker" style="left:15%;top:41%"><span class="num">①</span><span class="arrow">→</span></div>
+<div class="marker" style="left:64%;top:18%"><span class="num">②</span><span class="arrow">↓</span></div>
+<div class="marker" style="left:36%;top:18%"><span class="num">③</span><span class="arrow">↓</span></div>
+</div>
+</div>
+<div class="cell practice-cell"><div class="glyph target-char">せ</div></div>
+<div class="cell practice-cell"><div class="glyph target-char">せ</div></div>
+<div class="word-area"><div class="picture">「せみ」の<br>えをかこう</div><div class="word">せみ</div></div>
+<div class="cell practice-cell self-cell"><div class="glyph target-char">せ</div></div>
+<div class="cell practice-cell self-cell"><div class="glyph target-char">せ</div></div>
+</div>
+<div class="footer">1ページ目</div>
+</div>
+
+<!-- PAGE 2 -->
+<div class="page" data-row="2">
+<div class="header">
+<h1><span class="title-char">い</span> の れんしゅう</h1>
+<div class="info">
+<div>なまえ <span class="write-line"></span></div>
+<div>ひづけ <span class="write-line date-line"></span></div>
+</div>
+</div>
+<div class="practice">
+<div class="cell model">
+<div class="glyph target-char">い</div>
+<div class="order-title">かきじゅん</div>
+<div class="markers">
+<div class="marker" style="left:30%;top:19%"><span class="num">①</span><span class="arrow">↓</span></div>
+<div class="marker" style="left:67%;top:23%"><span class="num">②</span><span class="arrow">↓</span></div>
+</div>
+</div>
+<div class="cell practice-cell"><div class="glyph target-char">い</div></div>
+<div class="cell practice-cell"><div class="glyph target-char">い</div></div>
+<div class="word-area"><div class="picture">「いぬ」の<br>えをかこう</div><div class="word">いぬ</div></div>
+<div class="cell practice-cell self-cell"><div class="glyph target-char">い</div></div>
+<div class="cell practice-cell self-cell"><div class="glyph target-char">い</div></div>
+</div>
+<div class="footer">2ページ目</div>
+</div>
+
+<!-- PAGE 3 -->
+<div class="page" data-row="3">
+<div class="header">
+<h1><span class="title-char">や</span> の れんしゅう</h1>
+<div class="info">
+<div>なまえ <span class="write-line"></span></div>
+<div>ひづけ <span class="write-line date-line"></span></div>
+</div>
+</div>
+<div class="practice">
+<div class="cell model">
+<div class="glyph target-char">や</div>
+<div class="order-title">かきじゅん</div>
+<div class="markers">
+<div class="marker" style="left:15%;top:45%"><span class="num">①</span><span class="arrow">→</span></div>
+<div class="marker" style="left:58%;top:15%"><span class="num">②</span><span class="arrow">↘</span></div>
+<div class="marker" style="left:34%;top:18%"><span class="num">③</span><span class="arrow">↘</span></div>
+</div>
+</div>
+<div class="cell practice-cell"><div class="glyph target-char">や</div></div>
+<div class="cell practice-cell"><div class="glyph target-char">や</div></div>
+<div class="word-area"><div class="picture">「やま」の<br>えをかこう</div><div class="word">やま</div></div>
+<div class="cell practice-cell self-cell"><div class="glyph target-char">や</div></div>
+<div class="cell practice-cell self-cell"><div class="glyph target-char">や</div></div>
+</div>
+<div class="footer">3ページ目</div>
+</div>
+
+</div>
+
+<script>
+const guides={
+"せ":[[15,41,"→"],[64,18,"↓"],[36,18,"↓"]],
+"い":[[30,19,"↓"],[67,23,"↓"]],
+"や":[[15,45,"→"],[58,15,"↘"],[34,18,"↘"]]
+};
+const nums=["①","②","③","④"];
+
+function esc(s){
+  return s.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+}
+function renderMarkers(page,ch){
+  const box=page.querySelector(".markers");
+  const data=guides[ch];
+  if(!data){
+    box.innerHTML='<div class="unsupported">書き順ガイド未登録</div>';
+    return;
+  }
+  box.innerHTML="";
+  data.forEach((m,i)=>{
+    const x=document.createElement("div");
+    x.className="marker";
+    x.style.left=m[0]+"%";
+    x.style.top=m[1]+"%";
+    x.innerHTML='<span class="num">'+nums[i]+'</span><span class="arrow">'+m[2]+'</span>';
+    box.appendChild(x);
+  });
+}
+function updateRow(r){
+  const ch=(document.getElementById("char"+r).value||"　").slice(0,1);
+  const w=document.getElementById("word"+r).value||"";
+  const page=document.querySelector('.page[data-row="'+r+'"]');
+  page.querySelectorAll(".target-char").forEach(e=>e.textContent=ch);
+  page.querySelector(".title-char").textContent=ch;
+  page.querySelector(".word").textContent=w;
+  page.querySelector(".picture").innerHTML="「"+esc(w)+"」の<br>えをかこう";
+  renderMarkers(page,ch);
+}
+
+for(let r=1;r<=3;r++){
+  ["char","word"].forEach(prefix=>{
+    const el=document.getElementById(prefix+r);
+    el.addEventListener("input",()=>updateRow(r));
+    el.addEventListener("change",()=>updateRow(r));
+  });
+}
+
+/* 用紙サイズ切替 */
+const paperSelect=document.getElementById("paperSize");
+const pageStyle=document.getElementById("page-style");
+
+function setPaperSize(){
+  const v=paperSelect.value;
+  document.body.classList.remove("paper-a4","paper-b5","paper-auto");
+
+  if(v==="a4"){
+    document.body.classList.add("paper-a4");
+    pageStyle.textContent='@page{size:A4 landscape;margin:0}';
+  }else if(v==="b5"){
+    document.body.classList.add("paper-b5");
+    pageStyle.textContent='@page{size:B5 landscape;margin:0}';
+  }else{
+    document.body.classList.add("paper-auto");
+    pageStyle.textContent='@page{size:auto;margin:0}';
+  }
+}
+paperSelect.addEventListener("change",setPaperSize);
+setPaperSize();
+</script>
+
+</body>
+</html>
