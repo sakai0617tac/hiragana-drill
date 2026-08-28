@@ -3,201 +3,415 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ひらがなれんしゅう・A4/B5選択</title>
-<style id="page-style">
-@page{size:auto;margin:0}
-</style>
+<title>ひらがなれんしゅう・全部つながらない版</title>
+
+<style id="page-style">@page{size:auto;margin:0}</style>
+
 <style>
 *{box-sizing:border-box}
 :root{
-  --cell:68mm;
-  --gap:5mm;
-  --page-w:257mm;
-  --page-h:182mm;
+  --cell:64mm;
+  --gap:4mm;
+  --page-w:245mm;
+  --page-h:170mm;
 }
 body{
-  margin:0;background:#eee;color:#222;
-  font-family:"Yu Gothic","Hiragino Kaku Gothic ProN",sans-serif
+  margin:0;
+  background:#eee;
+  color:#222;
+  font-family:"Yu Gothic","Hiragino Kaku Gothic ProN",sans-serif;
 }
-.state-radio,.mode-radio{position:absolute;left:-9999px}
+.mode-radio{position:absolute;left:-9999px}
 
 .controls{
-  width:min(960px,calc(100% - 24px));
-  margin:16px auto;padding:16px 18px;background:#fff;
-  border-radius:12px;box-shadow:0 2px 12px #0002
+  width:min(980px,calc(100% - 24px));
+  margin:16px auto;
+  padding:16px 18px;
+  background:#fff;
+  border-radius:12px;
+  box-shadow:0 2px 12px #0002;
 }
 .controls h2{margin:0 0 8px;font-size:18px}
 .controls p{font-size:13px;line-height:1.6;margin:6px 0 12px}
-.edit-grid{
-  display:grid;grid-template-columns:45px 90px 1fr;
-  gap:8px 10px;align-items:center;margin-bottom:14px
+
+.section-title{
+  font-size:13px;
+  font-weight:700;
+  margin:14px 0 7px;
 }
-.edit-grid .head{font-weight:700;font-size:13px}
-input,button,select{font:inherit}
-.char-input{width:70px;font-size:28px;text-align:center;padding:5px}
-.word-input{width:100%;max-width:240px;font-size:18px;padding:7px 9px}
-.paper-select{padding:8px 10px;font-size:15px}
-.section-title{font-size:13px;font-weight:700;margin:12px 0 6px}
-.choice-box,.mode-box{display:flex;gap:9px;flex-wrap:wrap}
-.choice-label,.mode-label{
-  display:inline-block;padding:9px 13px;border:1.5px solid #777;
-  border-radius:9px;cursor:pointer;font-weight:700;font-size:14px;background:#fff
+.paper-select{
+  padding:8px 10px;
+  font-size:15px;
 }
-#print-1:checked ~ .controls label[for="print-1"],
-#print-2:checked ~ .controls label[for="print-2"],
-#print-3:checked ~ .controls label[for="print-3"],
-#print-all:checked ~ .controls label[for="print-all"],
+
+.rows{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.edit-row{
+  display:grid;
+  grid-template-columns:42px 34px 74px minmax(130px,220px) 74px;
+  gap:8px;
+  align-items:center;
+  padding:8px;
+  border:1px solid #ddd;
+  border-radius:10px;
+}
+.edit-row .no{
+  font-weight:700;
+  text-align:center;
+}
+.print-check{
+  width:20px;
+  height:20px;
+  margin:auto;
+}
+.char-input{
+  width:68px;
+  font-size:28px;
+  text-align:center;
+  padding:5px;
+}
+.word-input{
+  width:100%;
+  font-size:18px;
+  padding:7px 9px;
+}
+.remove-btn{
+  margin:0;
+  padding:7px 8px;
+  border:1px solid #aaa;
+  border-radius:8px;
+  background:#fff;
+  font-size:13px;
+}
+.add-btn{
+  margin-top:10px;
+  padding:9px 14px;
+  border:1px solid #777;
+  border-radius:8px;
+  background:#fff;
+  font-weight:700;
+}
+
+.mode-box{
+  display:flex;
+  gap:9px;
+  flex-wrap:wrap;
+}
+.mode-label{
+  display:inline-block;
+  padding:9px 13px;
+  border:1.5px solid #777;
+  border-radius:9px;
+  cursor:pointer;
+  font-weight:700;
+  font-size:14px;
+  background:#fff;
+}
 #mode-all:checked ~ .controls label[for="mode-all"],
-#mode-mixed:checked ~ .controls label[for="mode-mixed"]{border-width:3px}
-
-button{
-  margin-top:14px;padding:10px 18px;border:1px solid #777;
-  border-radius:8px;background:#fff;cursor:pointer
+#mode-mixed:checked ~ .controls label[for="mode-mixed"]{
+  border-width:3px;
 }
-.note{font-size:12px;line-height:1.6;margin-top:10px}
 
+.print-btn{
+  margin-top:14px;
+  padding:11px 18px;
+  border:1px solid #777;
+  border-radius:8px;
+  background:#fff;
+  font-weight:700;
+  font-size:15px;
+}
+.status{
+  margin-top:10px;
+  font-size:13px;
+  font-weight:700;
+}
+.note{
+  margin-top:8px;
+  font-size:12px;
+  line-height:1.6;
+}
+
+/* ページ */
 .page{
-  width:var(--page-w);height:var(--page-h);
-  margin:0 auto 20px;padding:6mm 8mm;background:#fff;overflow:hidden
+  width:var(--page-w);
+  height:var(--page-h);
+  margin:0 auto 20px;
+  padding:4mm;
+  background:#fff;
+  overflow:hidden;
 }
 .header{
-  display:flex;align-items:flex-end;justify-content:space-between;
-  height:17mm;margin-bottom:4mm
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  height:14mm;
+  margin-bottom:3mm;
 }
-h1{margin:0;font-size:19pt;letter-spacing:.08em}
-.info{display:flex;gap:6mm;font-size:11pt}
+h1{
+  margin:0;
+  font-size:19pt;
+  letter-spacing:.08em;
+}
+.info{
+  display:flex;
+  gap:6mm;
+  font-size:11pt;
+}
 .write-line{
-  display:inline-block;width:35mm;height:7mm;
-  border-bottom:1.4px solid #333;vertical-align:bottom
+  display:inline-block;
+  width:35mm;
+  height:7mm;
+  border-bottom:1.4px solid #333;
+  vertical-align:bottom;
 }
 .date-line{width:27mm}
 
 .practice{
-  display:grid;grid-template-columns:repeat(3,var(--cell));
+  display:grid;
+  grid-template-columns:repeat(3,var(--cell));
   grid-template-rows:repeat(2,var(--cell));
-  gap:var(--gap);justify-content:center
+  gap:var(--gap);
+  justify-content:center;
 }
 .cell{
-  position:relative;width:var(--cell);height:var(--cell);
-  border:1.5px solid #555;background:#fff;overflow:hidden
+  position:relative;
+  width:var(--cell);
+  height:var(--cell);
+  border:1.5px solid #555;
+  background:#fff;
+  overflow:hidden;
 }
-.cell:before,.cell:after{content:"";position:absolute;z-index:1;pointer-events:none}
+.cell:before,.cell:after{
+  content:"";
+  position:absolute;
+  z-index:1;
+  pointer-events:none;
+}
 .cell:before{
-  left:50%;top:0;bottom:0;border-left:1px dashed #aaa;
-  transform:translateX(-50%)
+  left:50%;
+  top:0;
+  bottom:0;
+  border-left:1px dashed #aaa;
+  transform:translateX(-50%);
 }
 .cell:after{
-  top:50%;left:0;right:0;border-top:1px dashed #aaa;
-  transform:translateY(-50%)
+  top:50%;
+  left:0;
+  right:0;
+  border-top:1px dashed #aaa;
+  transform:translateY(-50%);
 }
-.glyph{
-  position:absolute;inset:1mm;z-index:2;display:flex;
-  align-items:center;justify-content:center;
+
+.glyph-fallback{
+  position:absolute;
+  inset:1mm;
+  z-index:2;
+  display:flex;
+  align-items:center;
+  justify-content:center;
   font-family:"Yu Kyokasho","UD Digi Kyokasho NP-R","Hiragino Kaku Gothic ProN",sans-serif;
-  font-size:51mm;line-height:1;transform:translateY(-1mm)
+  font-size:48mm;
+  line-height:1;
+  transform:translateY(-1mm);
 }
-.model .glyph{font-weight:700;color:#111}
-.practice-cell .glyph{font-weight:500;color:#D3D3D3}
-#mode-mixed:checked ~ .pages .self-cell .glyph{display:none}
+.model .glyph-fallback{
+  font-weight:700;
+  color:#111;
+}
+.practice-cell .glyph-fallback{
+  font-weight:500;
+  color:#D3D3D3;
+}
+
+/* つながらない練習字形 */
+.kana-svg{
+  position:absolute;
+  inset:2mm;
+  z-index:3;
+  width:calc(100% - 4mm);
+  height:calc(100% - 4mm);
+}
+.kana-stroke{
+  fill:none;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.model .kana-stroke{
+  stroke:#111;
+  stroke-width:74;
+}
+.practice-cell .kana-stroke{
+  stroke:#D3D3D3;
+  stroke-width:74;
+}
+
+/* 書き順オーバーレイ */
+.order-line{
+  stroke:#111;
+  stroke-width:16;
+  fill:none;
+  stroke-linecap:round;
+}
+.order-arrow{
+  fill:#111;
+}
+.order-circle{
+  fill:#fff;
+  stroke:#111;
+  stroke-width:9;
+}
+.order-text{
+  fill:#111;
+  font-size:78px;
+  font-weight:700;
+}
+
+#mode-mixed:checked ~ .pages .self-cell .kana-svg,
+#mode-mixed:checked ~ .pages .self-cell .glyph-fallback{
+  display:none!important;
+}
 
 .word-area{
-  width:var(--cell);height:var(--cell);border:1.5px solid #777;
-  border-radius:3mm;display:grid;grid-template-rows:1fr 16mm;overflow:hidden
+  width:var(--cell);
+  height:var(--cell);
+  border:1.5px solid #777;
+  border-radius:3mm;
+  display:grid;
+  grid-template-rows:1fr 16mm;
+  overflow:hidden;
 }
 .picture{
-  display:flex;align-items:center;justify-content:center;text-align:center;
-  font-size:11pt;color:#777;line-height:1.5;
-  border-bottom:1px dashed #aaa;padding:2mm
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  font-size:11pt;
+  color:#777;
+  line-height:1.5;
+  border-bottom:1px dashed #aaa;
+  padding:2mm;
 }
 .word{
-  display:flex;align-items:center;justify-content:center;
-  font-size:23pt;font-weight:700
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:23pt;
+  font-weight:700;
 }
 .order-title{
-  position:absolute;z-index:10;top:1.5mm;right:1.5mm;
-  font-size:7pt;font-weight:700;background:#fff;padding:0 1mm
+  position:absolute;
+  z-index:15;
+  top:1.5mm;
+  right:1.5mm;
+  font-size:7pt;
+  font-weight:700;
+  background:#fff;
+  padding:0 1mm;
 }
-.marker{
-  position:absolute;z-index:12;transform:translate(-50%,-50%);
-  display:flex;align-items:center;gap:.7mm;white-space:nowrap
+.error-badge{
+  position:absolute;
+  z-index:20;
+  left:2mm;
+  right:2mm;
+  bottom:2mm;
+  background:#fff;
+  border:1px solid #999;
+  padding:1mm;
+  font-size:7.5pt;
+  text-align:center;
 }
-.num{
-  font-size:17pt;font-weight:900;line-height:1;
-  background:#fff;border-radius:50%;padding:.3mm
+.footer{
+  margin-top:1mm;
+  height:3mm;
+  line-height:3mm;
+  text-align:right;
+  font-size:8pt;
+  color:#777;
 }
-.arrow{
-  font-size:16pt;font-weight:900;line-height:1;
-  background:#fff;padding:0 .4mm
-}
-.unsupported{
-  position:absolute;z-index:12;left:3mm;right:3mm;bottom:2mm;
-  text-align:center;background:#fff;font-size:8pt
-}
-.footer{margin-top:2mm;text-align:right;font-size:8pt;color:#777}
 
-/* A4を選んだ場合は少し大きく */
+/* A4 */
 body.paper-a4{
-  --page-w:297mm;
-  --page-h:210mm;
-  --cell:77mm;
-  --gap:6mm;
+  --page-w:285mm;
+  --page-h:198mm;
+  --cell:73mm;
+  --gap:5mm;
 }
-body.paper-a4 .glyph{font-size:58mm}
-body.paper-a4 .header{height:19mm}
-body.paper-a4 .page{padding:7mm 9mm}
+body.paper-a4 .page{padding:5mm}
+body.paper-a4 .header{
+  height:17mm;
+  margin-bottom:3mm;
+}
+body.paper-a4 .glyph-fallback{font-size:55mm}
+body.paper-a4 .model .kana-stroke,
+body.paper-a4 .practice-cell .kana-stroke{
+  stroke-width:80;
+}
 
-/* 1ページだけ選択 */
-#print-1:checked ~ .pages .page:not([data-row="1"]),
-#print-2:checked ~ .pages .page:not([data-row="2"]),
-#print-3:checked ~ .pages .page:not([data-row="3"]){
-  display:none
+/* B5 */
+body.paper-b5{
+  --page-w:245mm;
+  --page-h:170mm;
+  --cell:64mm;
+  --gap:4mm;
 }
+
+/* 画面上では印刷対象のみ表示 */
+.page.not-selected{display:none}
 
 @media print{
-  html,body{margin:0;background:#fff}
-  .controls,.state-radio,.mode-radio{display:none!important}
+  html,body{
+    margin:0!important;
+    padding:0!important;
+    background:#fff;
+  }
+
+  .controls,.mode-radio{
+    display:none!important;
+  }
+
   .page{
-    margin:0;
-    width:var(--page-w);
-    height:var(--page-h);
-    break-after:page;
-    page-break-after:always
-  }
-  .page:last-child{
-    break-after:auto;
-    page-break-after:auto
-  }
-
-  #print-1:checked ~ .pages .page:not([data-row="1"]),
-  #print-2:checked ~ .pages .page:not([data-row="2"]),
-  #print-3:checked ~ .pages .page:not([data-row="3"]){
-    display:none!important
+    display:block!important;
+    margin:0 auto!important;
+    overflow:hidden!important;
+    box-sizing:border-box!important;
+    break-inside:avoid!important;
+    page-break-inside:avoid!important;
+    break-after:page!important;
+    page-break-after:always!important;
   }
 
-  #print-1:checked ~ .pages .page[data-row="1"],
-  #print-2:checked ~ .pages .page[data-row="2"],
-  #print-3:checked ~ .pages .page[data-row="3"]{
-    break-after:auto;
-    page-break-after:auto
+  .page.not-selected{
+    display:none!important;
   }
 
-  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .page.last-print-page{
+    break-after:auto!important;
+    page-break-after:auto!important;
+  }
+
+  *{
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
 }
 </style>
 </head>
-<body class="paper-auto">
 
-<input class="state-radio" type="radio" name="print-target" id="print-1" checked>
-<input class="state-radio" type="radio" name="print-target" id="print-2">
-<input class="state-radio" type="radio" name="print-target" id="print-3">
-<input class="state-radio" type="radio" name="print-target" id="print-all">
+<body class="paper-auto">
 
 <input class="mode-radio" type="radio" name="mode" id="mode-all" checked>
 <input class="mode-radio" type="radio" name="mode" id="mode-mixed">
 
 <section class="controls">
-<h2>ひらがな練習・印刷設定</h2>
-<p>用紙サイズを固定せずに印刷したい場合は「自動」を選んでください。</p>
+<h2>ひらがな練習・全部つながらない版</h2>
+<p>
+ひらがなの練習用に、<b>すべての文字を1画ずつ離れた形</b>で表示します。<br>
+左のチェックが付いている文字だけ印刷します。
+</p>
 
 <div class="section-title">用紙サイズ</div>
 <select id="paperSize" class="paper-select">
@@ -206,170 +420,362 @@ body.paper-a4 .page{padding:7mm 9mm}
   <option value="b5">B5 横</option>
 </select>
 
-<div class="edit-grid" style="margin-top:14px">
-<div class="head">頁</div><div class="head">文字</div><div class="head">ことば</div>
-<div>1</div><input id="char1" class="char-input" maxlength="1" value="せ"><input id="word1" class="word-input" value="せみ">
-<div>2</div><input id="char2" class="char-input" maxlength="1" value="い"><input id="word2" class="word-input" value="いぬ">
-<div>3</div><input id="char3" class="char-input" maxlength="1" value="や"><input id="word3" class="word-input" value="やま">
-</div>
+<div class="section-title">練習する文字</div>
+<div id="rows" class="rows"></div>
 
-<div class="section-title">印刷するページ</div>
-<div class="choice-box">
-<label class="choice-label" for="print-1">1文字目だけ</label>
-<label class="choice-label" for="print-2">2文字目だけ</label>
-<label class="choice-label" for="print-3">3文字目だけ</label>
-<label class="choice-label" for="print-all">3文字まとめて</label>
-</div>
+<button id="addRow" class="add-btn" type="button">＋ 1文字追加</button>
 
 <div class="section-title">練習方法</div>
 <div class="mode-box">
-<label class="mode-label" for="mode-all">4マス ぜんぶなぞる</label>
-<label class="mode-label" for="mode-mixed">2マスなぞる＋2マスじぶんで</label>
+  <label class="mode-label" for="mode-all">4マス ぜんぶなぞる</label>
+  <label class="mode-label" for="mode-mixed">2マスなぞる＋2マスじぶんで</label>
 </div>
 
-<button onclick="window.print()">選んだ内容を印刷</button>
+<button id="printButton" class="print-btn" type="button">チェックした文字を印刷</button>
 
+<div id="status" class="status">準備中…</div>
 <div class="note">
-<b>おすすめ：</b>まず「自動」で印刷画面を開き、そこでA4/B5が選べるか確認してください。<br>
-もしプリンター側でA4が出ない場合は、プリンター本体の用紙設定もA4に変更してください。
+1文字＝1ページです。<br>
+書き順データはネット接続中に読み込みます。読み込めないときは簡易表示になります。
 </div>
 </section>
 
-<div class="pages">
-
-<!-- PAGE 1 -->
-<div class="page" data-row="1">
-<div class="header">
-<h1><span class="title-char">せ</span> の れんしゅう</h1>
-<div class="info">
-<div>なまえ <span class="write-line"></span></div>
-<div>ひづけ <span class="write-line date-line"></span></div>
-</div>
-</div>
-<div class="practice">
-<div class="cell model">
-<div class="glyph target-char">せ</div>
-<div class="order-title">かきじゅん</div>
-<div class="markers">
-<div class="marker" style="left:15%;top:41%"><span class="num">①</span><span class="arrow">→</span></div>
-<div class="marker" style="left:64%;top:18%"><span class="num">②</span><span class="arrow">↓</span></div>
-<div class="marker" style="left:36%;top:18%"><span class="num">③</span><span class="arrow">↓</span></div>
-</div>
-</div>
-<div class="cell practice-cell"><div class="glyph target-char">せ</div></div>
-<div class="cell practice-cell"><div class="glyph target-char">せ</div></div>
-<div class="word-area"><div class="picture">「せみ」の<br>えをかこう</div><div class="word">せみ</div></div>
-<div class="cell practice-cell self-cell"><div class="glyph target-char">せ</div></div>
-<div class="cell practice-cell self-cell"><div class="glyph target-char">せ</div></div>
-</div>
-<div class="footer">1ページ目</div>
-</div>
-
-<!-- PAGE 2 -->
-<div class="page" data-row="2">
-<div class="header">
-<h1><span class="title-char">い</span> の れんしゅう</h1>
-<div class="info">
-<div>なまえ <span class="write-line"></span></div>
-<div>ひづけ <span class="write-line date-line"></span></div>
-</div>
-</div>
-<div class="practice">
-<div class="cell model">
-<div class="glyph target-char">い</div>
-<div class="order-title">かきじゅん</div>
-<div class="markers">
-<div class="marker" style="left:30%;top:19%"><span class="num">①</span><span class="arrow">↓</span></div>
-<div class="marker" style="left:67%;top:23%"><span class="num">②</span><span class="arrow">↓</span></div>
-</div>
-</div>
-<div class="cell practice-cell"><div class="glyph target-char">い</div></div>
-<div class="cell practice-cell"><div class="glyph target-char">い</div></div>
-<div class="word-area"><div class="picture">「いぬ」の<br>えをかこう</div><div class="word">いぬ</div></div>
-<div class="cell practice-cell self-cell"><div class="glyph target-char">い</div></div>
-<div class="cell practice-cell self-cell"><div class="glyph target-char">い</div></div>
-</div>
-<div class="footer">2ページ目</div>
-</div>
-
-<!-- PAGE 3 -->
-<div class="page" data-row="3">
-<div class="header">
-<h1><span class="title-char">や</span> の れんしゅう</h1>
-<div class="info">
-<div>なまえ <span class="write-line"></span></div>
-<div>ひづけ <span class="write-line date-line"></span></div>
-</div>
-</div>
-<div class="practice">
-<div class="cell model">
-<div class="glyph target-char">や</div>
-<div class="order-title">かきじゅん</div>
-<div class="markers">
-<div class="marker" style="left:15%;top:45%"><span class="num">①</span><span class="arrow">→</span></div>
-<div class="marker" style="left:58%;top:15%"><span class="num">②</span><span class="arrow">↘</span></div>
-<div class="marker" style="left:34%;top:18%"><span class="num">③</span><span class="arrow">↘</span></div>
-</div>
-</div>
-<div class="cell practice-cell"><div class="glyph target-char">や</div></div>
-<div class="cell practice-cell"><div class="glyph target-char">や</div></div>
-<div class="word-area"><div class="picture">「やま」の<br>えをかこう</div><div class="word">やま</div></div>
-<div class="cell practice-cell self-cell"><div class="glyph target-char">や</div></div>
-<div class="cell practice-cell self-cell"><div class="glyph target-char">や</div></div>
-</div>
-<div class="footer">3ページ目</div>
-</div>
-
-</div>
+<div id="pages" class="pages"></div>
 
 <script>
-const guides={
-"せ":[[15,41,"→"],[64,18,"↓"],[36,18,"↓"]],
-"い":[[30,19,"↓"],[67,23,"↓"]],
-"や":[[15,45,"→"],[58,15,"↘"],[34,18,"↘"]]
-};
-const nums=["①","②","③","④"];
+const initialRows=[
+  {char:"せ",word:"せみ",checked:true},
+  {char:"い",word:"いぬ",checked:true},
+  {char:"や",word:"やま",checked:true}
+];
+
+const cache=new Map();
+let rowsData=[...initialRows];
 
 function esc(s){
-  return s.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+  return String(s)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;");
 }
-function renderMarkers(page,ch){
-  const box=page.querySelector(".markers");
-  const data=guides[ch];
-  if(!data){
-    box.innerHTML='<div class="unsupported">書き順ガイド未登録</div>';
+
+async function loadKana(ch){
+  if(cache.has(ch)) return cache.get(ch);
+
+  const url="https://cdn.jsdelivr.net/npm/kana-svg-data/dist/hiragana/"
+    + encodeURIComponent(ch) + ".json";
+
+  const res=await fetch(url,{cache:"force-cache"});
+  if(!res.ok) throw new Error("書き順データがありません");
+
+  const data=await res.json();
+  cache.set(ch,data);
+  return data;
+}
+
+function groupStrokeMedians(data){
+  const groups=new Map();
+
+  for(const median of data.medians || []){
+    const m=String(median.id).match(/^\d+/);
+    const key=m ? m[0] : String(median.id);
+
+    if(!groups.has(key)) groups.set(key,[]);
+    groups.get(key).push(median);
+  }
+
+  return [...groups.entries()]
+    .sort((a,b)=>Number(a[0])-Number(b[0]))
+    .map(([id,parts])=>{
+      const sortedParts=[...parts].sort((a,b)=>String(a.id).localeCompare(String(b.id), undefined, {numeric:true}));
+      const points=[];
+      sortedParts.forEach(part=>{
+        if(Array.isArray(part.value)){
+          part.value.forEach(p=>{
+            if(Array.isArray(p) && p.length>=2) points.push([p[0],p[1]]);
+          });
+        }
+      });
+      return {id,points};
+    });
+}
+
+function strokePathFromPoints(points){
+  if(!points || !points.length) return "";
+
+  if(points.length===1){
+    const [x,y]=points[0];
+    return `M ${x} ${y} L ${x+1} ${y+1}`;
+  }
+
+  // 角が出すぎないように簡易スムージング
+  let d=`M ${points[0][0]} ${points[0][1]}`;
+  for(let i=1;i<points.length-1;i++){
+    const xc=(points[i][0]+points[i+1][0])/2;
+    const yc=(points[i][1]+points[i+1][1])/2;
+    d += ` Q ${points[i][0]} ${points[i][1]} ${xc} ${yc}`;
+  }
+  const last=points[points.length-1];
+  d += ` T ${last[0]} ${last[1]}`;
+  return d;
+}
+
+function orderGuideSvg(strokes){
+  return strokes.map((s,i)=>{
+    const pts=s.points;
+    if(!pts.length) return "";
+
+    const p0=pts[0];
+    const p1=pts.length>1 ? pts[1] : [p0[0]+80,p0[1]];
+
+    let dx=p1[0]-p0[0];
+    let dy=p1[1]-p0[1];
+    const len=Math.hypot(dx,dy) || 1;
+
+    dx/=len;
+    dy/=len;
+
+    const x1=p0[0];
+    const y1=p0[1];
+    const x2=p0[0]+dx*115;
+    const y2=p0[1]+dy*115;
+
+    const cx=Math.max(55,Math.min(969,p0[0]-dx*62));
+    const cy=Math.max(55,Math.min(969,p0[1]-dy*62));
+
+    const ahx=x2;
+    const ahy=y2;
+    const back=55;
+    const half=28;
+    const perpX=-dy;
+    const perpY=dx;
+    const bx=ahx-dx*back;
+    const by=ahy-dy*back;
+
+    const pA=`${ahx},${ahy}`;
+    const pB=`${bx+perpX*half},${by+perpY*half}`;
+    const pC=`${bx-perpX*half},${by-perpY*half}`;
+
+    return `
+      <line class="order-line" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"></line>
+      <polygon class="order-arrow" points="${pA} ${pB} ${pC}"></polygon>
+      <circle class="order-circle" cx="${cx}" cy="${cy}" r="52"></circle>
+      <text class="order-text" x="${cx}" y="${cy+27}" text-anchor="middle">${i+1}</text>
+    `;
+  }).join("");
+}
+
+function svgForSeparated(data,withOrder){
+  const strokes=groupStrokeMedians(data);
+  const strokePaths=strokes.map(s=>{
+    const d=strokePathFromPoints(s.points);
+    return d ? `<path class="kana-stroke" d="${d}"></path>` : "";
+  }).join("");
+
+  const order=withOrder ? orderGuideSvg(strokes) : "";
+
+  return `<svg class="kana-svg" viewBox="0 0 1024 1024"
+      xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      ${strokePaths}
+      ${order}
+    </svg>`;
+}
+
+function makeRow(index,data){
+  const div=document.createElement("div");
+  div.className="edit-row";
+  div.dataset.index=index;
+
+  div.innerHTML=`
+    <div class="no">${index+1}</div>
+    <input class="print-check" type="checkbox" ${data.checked ? "checked" : ""} aria-label="印刷する">
+    <input class="char-input" maxlength="1" value="${esc(data.char)}" aria-label="文字">
+    <input class="word-input" value="${esc(data.word)}" aria-label="ことば">
+    <button class="remove-btn" type="button">削除</button>
+  `;
+
+  return div;
+}
+
+function renderRows(){
+  const rows=document.getElementById("rows");
+  rows.innerHTML="";
+
+  rowsData.forEach((data,index)=>{
+    rows.appendChild(makeRow(index,data));
+  });
+
+  bindRowEvents();
+}
+
+function bindRowEvents(){
+  document.querySelectorAll(".edit-row").forEach(row=>{
+    const index=Number(row.dataset.index);
+    const checkbox=row.querySelector(".print-check");
+    const charInput=row.querySelector(".char-input");
+    const wordInput=row.querySelector(".word-input");
+    const remove=row.querySelector(".remove-btn");
+
+    checkbox.addEventListener("change",()=>{
+      rowsData[index].checked=checkbox.checked;
+      renderPages();
+    });
+
+    charInput.addEventListener("input",()=>{
+      rowsData[index].char=(charInput.value||"　").slice(0,1);
+      charInput.value=rowsData[index].char;
+      renderPages();
+    });
+
+    charInput.addEventListener("change",()=>{
+      rowsData[index].char=(charInput.value||"　").slice(0,1);
+      charInput.value=rowsData[index].char;
+      renderPages();
+    });
+
+    wordInput.addEventListener("input",()=>{
+      rowsData[index].word=wordInput.value;
+      renderPages();
+    });
+
+    remove.addEventListener("click",()=>{
+      rowsData.splice(index,1);
+
+      if(rowsData.length===0){
+        rowsData.push({char:"あ",word:"あひる",checked:true});
+      }
+
+      renderRows();
+      renderPages();
+    });
+  });
+}
+
+function pageHtml(data,index){
+  const ch=esc(data.char || "　");
+  const word=esc(data.word || "");
+
+  return `
+  <div class="page ${data.checked ? "" : "not-selected"}" data-page-index="${index}">
+    <div class="header">
+      <h1><span class="title-char">${ch}</span> の れんしゅう</h1>
+      <div class="info">
+        <div>なまえ <span class="write-line"></span></div>
+        <div>ひづけ <span class="write-line date-line"></span></div>
+      </div>
+    </div>
+
+    <div class="practice">
+      <div class="cell model">
+        <div class="glyph-fallback">${ch}</div>
+        <div class="order-title">かきじゅん</div>
+      </div>
+
+      <div class="cell practice-cell">
+        <div class="glyph-fallback">${ch}</div>
+      </div>
+
+      <div class="cell practice-cell">
+        <div class="glyph-fallback">${ch}</div>
+      </div>
+
+      <div class="word-area">
+        <div class="picture">「${word}」の<br>えをかこう</div>
+        <div class="word">${word}</div>
+      </div>
+
+      <div class="cell practice-cell self-cell">
+        <div class="glyph-fallback">${ch}</div>
+      </div>
+
+      <div class="cell practice-cell self-cell">
+        <div class="glyph-fallback">${ch}</div>
+      </div>
+    </div>
+
+    <div class="footer">${index+1}ページ目</div>
+  </div>`;
+}
+
+async function renderKanaOnPage(page,ch){
+  page.querySelectorAll(".kana-svg,.error-badge").forEach(e=>e.remove());
+  page.querySelectorAll(".glyph-fallback").forEach(e=>e.style.display="flex");
+
+  try{
+    const data=await loadKana(ch);
+
+    const model=page.querySelector(".model");
+    model.insertAdjacentHTML("beforeend",svgForSeparated(data,true));
+
+    page.querySelectorAll(".practice-cell").forEach(cell=>{
+      cell.insertAdjacentHTML("beforeend",svgForSeparated(data,false));
+    });
+
+    page.querySelectorAll(".glyph-fallback").forEach(e=>e.style.display="none");
+    return true;
+
+  }catch(err){
+    const model=page.querySelector(".model");
+    const badge=document.createElement("div");
+    badge.className="error-badge";
+    badge.textContent="書き順を読み込めませんでした";
+    model.appendChild(badge);
+    return false;
+  }
+}
+
+async function renderPages(){
+  const pages=document.getElementById("pages");
+  pages.innerHTML=rowsData.map(pageHtml).join("");
+
+  const selected=rowsData
+    .map((x,i)=>({x,i}))
+    .filter(o=>o.x.checked);
+
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("last-print-page"));
+
+  if(selected.length){
+    const lastIndex=selected[selected.length-1].i;
+    const last=document.querySelector(`.page[data-page-index="${lastIndex}"]`);
+    if(last) last.classList.add("last-print-page");
+  }
+
+  document.getElementById("status").textContent=
+    `印刷対象：${selected.length}文字（${selected.length}ページ）`;
+
+  const jobs=[];
+
+  rowsData.forEach((data,index)=>{
+    if(!data.checked) return;
+    const page=document.querySelector(`.page[data-page-index="${index}"]`);
+    jobs.push(renderKanaOnPage(page,data.char));
+  });
+
+  const results=await Promise.all(jobs);
+  const okCount=results.filter(Boolean).length;
+
+  document.getElementById("status").textContent=
+    `印刷対象：${selected.length}文字（${selected.length}ページ）／書き順表示OK：${okCount}文字`;
+}
+
+document.getElementById("addRow").addEventListener("click",()=>{
+  rowsData.push({char:"あ",word:"あひる",checked:true});
+  renderRows();
+  renderPages();
+});
+
+document.getElementById("printButton").addEventListener("click",()=>{
+  const selected=rowsData.filter(x=>x.checked).length;
+
+  if(selected===0){
+    alert("印刷する文字にチェックを入れてください。");
     return;
   }
-  box.innerHTML="";
-  data.forEach((m,i)=>{
-    const x=document.createElement("div");
-    x.className="marker";
-    x.style.left=m[0]+"%";
-    x.style.top=m[1]+"%";
-    x.innerHTML='<span class="num">'+nums[i]+'</span><span class="arrow">'+m[2]+'</span>';
-    box.appendChild(x);
-  });
-}
-function updateRow(r){
-  const ch=(document.getElementById("char"+r).value||"　").slice(0,1);
-  const w=document.getElementById("word"+r).value||"";
-  const page=document.querySelector('.page[data-row="'+r+'"]');
-  page.querySelectorAll(".target-char").forEach(e=>e.textContent=ch);
-  page.querySelector(".title-char").textContent=ch;
-  page.querySelector(".word").textContent=w;
-  page.querySelector(".picture").innerHTML="「"+esc(w)+"」の<br>えをかこう";
-  renderMarkers(page,ch);
-}
 
-for(let r=1;r<=3;r++){
-  ["char","word"].forEach(prefix=>{
-    const el=document.getElementById(prefix+r);
-    el.addEventListener("input",()=>updateRow(r));
-    el.addEventListener("change",()=>updateRow(r));
-  });
-}
+  window.print();
+});
 
-/* 用紙サイズ切替 */
+/* 用紙 */
 const paperSelect=document.getElementById("paperSize");
 const pageStyle=document.getElementById("page-style");
 
@@ -388,8 +794,12 @@ function setPaperSize(){
     pageStyle.textContent='@page{size:auto;margin:0}';
   }
 }
+
 paperSelect.addEventListener("change",setPaperSize);
 setPaperSize();
+
+renderRows();
+renderPages();
 </script>
 
 </body>
