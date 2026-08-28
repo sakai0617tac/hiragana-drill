@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>2さい はじめてのドリル・迷路修正版</title>
+
+<style id="page-style">@page{size:auto;margin:0}</style>
+
+<style>
+*{box-sizing:border-box}
+:root{
+  --page-w:245mm;
+  --page-h:170mm;
+}
+body{
+  margin:0;
+  background:#eee;
+  color:#222;
+  font-family:"Yu Gothic","Hiragino Kaku Gothic ProN",sans-serif;
+}
+
+.controls{
+  width:min(920px,calc(100% - 24px));
+  margin:16px auto;
+  padding:16px 18px;
+  background:#fff;
+  border-radius:14px;
+  box-shadow:0 2px 12px #0002;
+}
+.controls h2{margin:0 0 8px;font-size:20px}
+.controls p{font-size:13px;line-height:1.7;margin:6px 0 12px}
+
+.section-title{
+  margin:14px 0 7px;
+  font-size:13px;
+  font-weight:700;
+}
+select,button,input{font:inherit}
+select{
+  padding:8px 10px;
+  font-size:15px;
+}
+.page-list{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+.page-choice{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:10px 12px;
+  border:1px solid #ddd;
+  border-radius:10px;
+  background:#fff;
+}
+.page-choice input{
+  width:20px;height:20px;
+}
+.btns{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:12px;
+}
+button{
+  border:1px solid #777;
+  background:#fff;
+  border-radius:9px;
+  padding:9px 13px;
+}
+.print-btn{
+  font-weight:700;
+  padding:11px 18px;
+}
+.status{
+  margin-top:10px;
+  font-size:13px;
+  font-weight:700;
+}
+.note{
+  margin-top:8px;
+  font-size:12px;
+  line-height:1.6;
+}
+
+/* page */
+.page{
+  width:var(--page-w);
+  height:var(--page-h);
+  margin:0 auto 20px;
+  padding:6mm 8mm 8mm;
+  background:#fff;
+  overflow:hidden;
+}
+.page.hidden{display:none}
+
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  height:15mm;
+  margin-bottom:2.5mm;
+}
+.title{
+  font-size:21pt;
+  font-weight:800;
+}
+.info{
+  display:flex;
+  gap:6mm;
+  font-size:11pt;
+}
+.line{
+  display:inline-block;
+  width:33mm;
+  height:7mm;
+  border-bottom:1.4px solid #333;
+  vertical-align:bottom;
+}
+.date-line{width:26mm}
+
+.instruction{
+  text-align:center;
+  font-size:17pt;
+  font-weight:800;
+  margin:0 0 3mm;
+}
+.small{
+  text-align:center;
+  font-size:10.5pt;
+  margin-top:-1mm;
+  margin-bottom:2mm;
+}
+
+/* common SVG */
+.work{
+  width:100%;
+  height:110mm;
+}
+svg{width:100%;height:100%}
+.trace{
+  fill:none;
+  stroke:#bdbdbd;
+  stroke-width:14;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-dasharray:18 18;
+}
+.guide{
+  fill:none;
+  stroke:#888;
+  stroke-width:5;
+}
+.bold{
+  fill:none;
+  stroke:#333;
+  stroke-width:7;
+}
+.shape-fill{fill:#fff;stroke:#333;stroke-width:5}
+.light-fill{fill:#f5f5f5;stroke:#888;stroke-width:4}
+.label{
+  font-size:44px;
+  font-weight:700;
+  fill:#222;
+}
+.big-label{
+  font-size:58px;
+  font-weight:800;
+  fill:#222;
+}
+
+/* A4 */
+body.paper-a4{
+  --page-w:285mm;
+  --page-h:198mm;
+}
+body.paper-a4 .work{height:136mm}
+body.paper-a4 .page{padding:7mm 10mm 9mm}
+
+/* B5 */
+body.paper-b5{
+  --page-w:245mm;
+  --page-h:170mm;
+}
+
+@media print{
+  html,body{
+    margin:0!important;
+    padding:0!important;
+    background:#fff;
+  }
+  .controls{display:none!important}
+  .page{
+    display:block!important;
+    margin:0 auto!important;
+    overflow:hidden!important;
+    break-inside:avoid!important;
+    page-break-inside:avoid!important;
+    break-after:page!important;
+    page-break-after:always!important;
+  }
+  .page.hidden{display:none!important}
+  .page.last-print-page{
+    break-after:auto!important;
+    page-break-after:auto!important;
+  }
+  *{
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
+}
+</style>
+</head>
+
+<body class="paper-auto">
+
+<section class="controls">
+<h2>2さい はじめてのドリル</h2>
+<p>
+鉛筆を持つ練習用です。<b>1ページ1課題・大きく・かんたん</b>にしています。<br>
+印刷したいページだけチェックしてください。
+</p>
+
+<div class="section-title">用紙サイズ</div>
+<select id="paperSize">
+  <option value="auto" selected>自動（プリンター側で選ぶ）</option>
+  <option value="a4">A4 横</option>
+  <option value="b5">B5 横</option>
+</select>
+
+<div class="section-title">印刷するページ</div>
+<div class="page-list">
+  <label class="page-choice"><input type="checkbox" data-page="1" checked> ① まっすぐせん</label>
+  <label class="page-choice"><input type="checkbox" data-page="2" checked> ② なみなみせん</label>
+  <label class="page-choice"><input type="checkbox" data-page="3" checked> ③ かたちをなぞろう</label>
+  <label class="page-choice"><input type="checkbox" data-page="4" checked> ④ おなじものをつなごう</label>
+  <label class="page-choice"><input type="checkbox" data-page="5" checked> ⑤ おおきいほうに○</label>
+  <label class="page-choice"><input type="checkbox" data-page="6" checked> ⑥ かんたんめいろ</label>
+</div>
+
+<div class="btns">
+  <button type="button" id="allOn">ぜんぶ選ぶ</button>
+  <button type="button" id="allOff">ぜんぶ外す</button>
+  <button type="button" id="printBtn" class="print-btn">チェックしたページを印刷</button>
+</div>
+
+<div id="status" class="status">印刷対象：6ページ</div>
+<div class="note">1ページ＝1枚です。2歳向けなので、できたら十分です。きれいに書く必要はありません。</div>
+</section>
+
+<div id="pages">
+
+<!-- 1 -->
+<section class="page" data-page-id="1">
+  <div class="header">
+    <div class="title">① まっすぐせん</div>
+    <div class="info">
+      <div>なまえ <span class="line"></span></div>
+      <div>ひづけ <span class="line date-line"></span></div>
+    </div>
+  </div>
+  <div class="instruction">てんせんを なぞってみよう</div>
+  <div class="small">うえから したへ ／ ひだりから みぎへ</div>
+  <div class="work">
+    <svg viewBox="0 0 1000 560">
+      <circle cx="110" cy="70" r="34" class="shape-fill"/>
+      <circle cx="110" cy="490" r="34" class="shape-fill"/>
+      <path d="M110 110 L110 450" class="trace"/>
+
+      <circle cx="330" cy="70" r="34" class="shape-fill"/>
+      <circle cx="330" cy="490" r="34" class="shape-fill"/>
+      <path d="M330 110 L330 450" class="trace"/>
+
+      <circle cx="550" cy="70" r="34" class="shape-fill"/>
+      <circle cx="550" cy="490" r="34" class="shape-fill"/>
+      <path d="M550 110 L550 450" class="trace"/>
+
+      <circle cx="720" cy="180" r="34" class="shape-fill"/>
+      <circle cx="940" cy="180" r="34" class="shape-fill"/>
+      <path d="M760 180 L900 180" class="trace"/>
+
+      <circle cx="720" cy="390" r="34" class="shape-fill"/>
+      <circle cx="940" cy="390" r="34" class="shape-fill"/>
+      <path d="M760 390 L900 390" class="trace"/>
+    </svg>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="page" data-page-id="2">
+  <div class="header">
+    <div class="title">② なみなみせん</div>
+    <div class="info">
+      <div>なまえ <span class="line"></span></div>
+      <div>ひづけ <span class="line date-line"></span></div>
+    </div>
+  </div>
+  <div class="instruction">なみなみを なぞってみよう</div>
+  <div class="work">
+    <svg viewBox="0 0 1000 560">
+      <circle cx="75" cy="100" r="32" class="shape-fill"/>
+      <circle cx="925" cy="100" r="32" class="shape-fill"/>
+      <path d="M115 100 C190 20 265 180 340 100 S490 20 565 100 S715 180 790 100 S865 20 890 100" class="trace"/>
+
+      <circle cx="75" cy="280" r="32" class="shape-fill"/>
+      <circle cx="925" cy="280" r="32" class="shape-fill"/>
+      <path d="M115 280 C180 205 245 355 310 280 S440 205 505 280 S635 355 700 280 S830 205 890 280" class="trace"/>
+
+      <circle cx="75" cy="460" r="32" class="shape-fill"/>
+      <circle cx="925" cy="460" r="32" class="shape-fill"/>
+      <path d="M115 460 C180 390 245 530 310 460 S440 390 505 460 S635 530 700 460 S830 390 890 460" class="trace"/>
+    </svg>
+  </div>
+</section>
+
+<!-- 3 -->
+<section class="page" data-page-id="3">
+  <div class="header">
+    <div class="title">③ かたちを なぞろう</div>
+    <div class="info">
+      <div>なまえ <span class="line"></span></div>
+      <div>ひづけ <span class="line date-line"></span></div>
+    </div>
+  </div>
+  <div class="instruction">○ △ □ を なぞってみよう</div>
+  <div class="work">
+    <svg viewBox="0 0 1000 560">
+      <circle cx="180" cy="280" r="130" class="trace"/>
+      <polygon points="500,130 365,405 635,405" class="trace"/>
+      <rect x="715" y="150" width="240" height="240" rx="10" class="trace"/>
+      <text x="180" y="500" text-anchor="middle" class="label">まる</text>
+      <text x="500" y="500" text-anchor="middle" class="label">さんかく</text>
+      <text x="835" y="500" text-anchor="middle" class="label">しかく</text>
+    </svg>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="page" data-page-id="4">
+  <div class="header">
+    <div class="title">④ おなじものを つなごう</div>
+    <div class="info">
+      <div>なまえ <span class="line"></span></div>
+      <div>ひづけ <span class="line date-line"></span></div>
+    </div>
+  </div>
+  <div class="instruction">おなじ かたちを せんで つなごう</div>
+  <div class="work">
+    <svg viewBox="0 0 1000 560">
+      <!-- left -->
+      <circle cx="180" cy="120" r="65" class="shape-fill"/>
+      <polygon points="180,245 110,375 250,375" class="shape-fill"/>
+      <rect x="115" y="420" width="130" height="95" class="shape-fill"/>
+
+      <!-- right shuffled -->
+      <rect x="755" y="70" width="130" height="95" class="shape-fill"/>
+      <circle cx="820" cy="300" r="65" class="shape-fill"/>
+      <polygon points="820,385 750,515 890,515" class="shape-fill"/>
+
+      <text x="500" y="245" text-anchor="middle" class="label">せんで つないでね</text>
+    </svg>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="page" data-page-id="5">
+  <div class="header">
+    <div class="title">⑤ おおきいほうに ○</div>
+    <div class="info">
+      <div>なまえ <span class="line"></span></div>
+      <div>ひづけ <span class="line date-line"></span></div>
+    </div>
+  </div>
+  <div class="instruction">おおきい かたちを ○で かこもう</div>
+  <div class="work">
+    <svg viewBox="0 0 1000 560">
+      <!-- 1だんめ：まる -->
+      <circle cx="180" cy="145" r="40" class="shape-fill"/>
+      <circle cx="395" cy="145" r="92" class="shape-fill"/>
+
+      <!-- 1だんめ：しかく -->
+      <rect x="620" y="90" width="88" height="88" class="shape-fill"/>
+      <rect x="790" y="55" width="150" height="150" class="shape-fill"/>
+
+      <!-- 2だんめ：さんかく -->
+      <polygon points="200,350 140,462 260,462" class="shape-fill"/>
+      <polygon points="470,305 365,505 575,505" class="shape-fill"/>
+
+      <!-- 2だんめ：まる -->
+      <circle cx="750" cy="405" r="82" class="shape-fill"/>
+      <circle cx="920" cy="405" r="38" class="shape-fill"/>
+    </svg>
+  </div>
+</section>
+
+<!-- 6 -->
+<section class="page" data-page-id="6">
+  <div class="header">
+    <div class="title">⑥ かんたん めいろ</div>
+    <div class="info">
+      <div>なまえ <span class="line"></span></div>
+      <div>ひづけ <span class="line date-line"></span></div>
+    </div>
+  </div>
+  <div class="instruction">くるまを おうちまで つれていこう</div>
+  <div class="work">
+    <svg viewBox="0 0 1000 560">
+      <!-- スタート -->
+      <text x="115" y="85" text-anchor="middle" class="label">スタート</text>
+      <rect x="55" y="115" width="120" height="62" rx="14" class="shape-fill"/>
+      <circle cx="85" cy="188" r="17" class="shape-fill"/>
+      <circle cx="145" cy="188" r="17" class="shape-fill"/>
+
+      <!-- ゴールのおうち -->
+      <text x="865" y="85" text-anchor="middle" class="label">ゴール</text>
+      <rect x="815" y="118" width="105" height="85" class="shape-fill"/>
+      <polygon points="795,118 867,68 940,118" class="shape-fill"/>
+      <rect x="855" y="158" width="28" height="45" class="shape-fill"/>
+
+      <!-- 迷路の壁：太くて分かりやすい一本道 -->
+      <!-- 上の壁 -->
+      <path d="
+        M200 105
+        L430 105
+        L430 220
+        L660 220
+        L660 105
+        L780 105
+      " class="bold"/>
+
+      <!-- 下の壁 -->
+      <path d="
+        M200 255
+        L310 255
+        L310 390
+        L560 390
+        L560 310
+        L780 310
+      " class="bold"/>
+
+      <!-- 行き止まりを1本だけ -->
+      <path d="
+        M430 220
+        L430 335
+        L500 335
+      " class="bold"/>
+
+      <!-- スタート入口とゴール出口を開けるための白カバー -->
+      <rect x="185" y="155" width="35" height="65" fill="white"/>
+      <rect x="765" y="165" width="35" height="65" fill="white"/>
+
+      <!-- 小さな補助ラベル -->
+      <text x="505" y="515" text-anchor="middle" style="font-size:34px;font-weight:700;fill:#555;">
+        みちを すすんでね
+      </text>
+    </svg>
+  </div>
+</section>
+
+</div>
+
+<script>
+const checks=[...document.querySelectorAll('.page-choice input')];
+const pages=[...document.querySelectorAll('.page')];
+const status=document.getElementById('status');
+const pageStyle=document.getElementById('page-style');
+
+function syncPages(){
+  const selectedIds=checks.filter(c=>c.checked).map(c=>c.dataset.page);
+
+  pages.forEach(p=>{
+    p.classList.toggle('hidden',!selectedIds.includes(p.dataset.pageId));
+    p.classList.remove('last-print-page');
+  });
+
+  if(selectedIds.length){
+    const last=pages.find(p=>p.dataset.pageId===selectedIds[selectedIds.length-1]);
+    if(last) last.classList.add('last-print-page');
+  }
+
+  status.textContent=`印刷対象：${selectedIds.length}ページ`;
+}
+
+checks.forEach(c=>c.addEventListener('change',syncPages));
+
+document.getElementById('allOn').addEventListener('click',()=>{
+  checks.forEach(c=>c.checked=true);
+  syncPages();
+});
+document.getElementById('allOff').addEventListener('click',()=>{
+  checks.forEach(c=>c.checked=false);
+  syncPages();
+});
+document.getElementById('printBtn').addEventListener('click',()=>{
+  if(!checks.some(c=>c.checked)){
+    alert('印刷するページを選んでください。');
+    return;
+  }
+  window.print();
+});
+
+document.getElementById('paperSize').addEventListener('change',e=>{
+  document.body.classList.remove('paper-a4','paper-b5','paper-auto');
+  if(e.target.value==='a4'){
+    document.body.classList.add('paper-a4');
+    pageStyle.textContent='@page{size:A4 landscape;margin:0}';
+  }else if(e.target.value==='b5'){
+    document.body.classList.add('paper-b5');
+    pageStyle.textContent='@page{size:B5 landscape;margin:0}';
+  }else{
+    document.body.classList.add('paper-auto');
+    pageStyle.textContent='@page{size:auto;margin:0}';
+  }
+});
+
+syncPages();
+</script>
+</body>
+</html>
